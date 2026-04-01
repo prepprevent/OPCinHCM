@@ -13,22 +13,23 @@ df = pd.read_excel(file_path)
 # Bỏ các dòng thiếu tọa độ
 df = df.dropna(subset=["lat", "lon"])
 
+# Chuẩn hóa cột Số BN về dạng số
+df["Số BN"] = pd.to_numeric(df["Số BN"], errors="coerce")
+
 st.title("Bản đồ cơ sở điều trị")
 
-# Tạo bảng màu theo STT
-unique_stt = sorted(df["STT"].dropna().unique())
-
-color_list = [
-    "red", "blue", "green", "purple", "orange",
-    "darkred", "lightred", "beige", "darkblue",
-    "darkgreen", "cadetblue", "darkpurple", "pink",
-    "lightblue", "lightgreen", "gray", "black"
-]
-
-stt_color_map = {
-    stt: color_list[i % len(color_list)]
-    for i, stt in enumerate(unique_stt)
-}
+# Hàm phân màu theo số bệnh nhân
+def get_color(so_bn):
+    if pd.isna(so_bn):
+        return "gray"
+    elif so_bn < 100:
+        return "green"
+    elif so_bn < 500:
+        return "blue"
+    elif so_bn < 1000:
+        return "orange"
+    else:
+        return "red"
 
 # Tạo bản đồ
 m = folium.Map(
@@ -39,24 +40,21 @@ Fullscreen(position="topright").add_to(m)
 
 # Vẽ các điểm
 for _, row in df.iterrows():
-    stt = row["STT"]
-    color = stt_color_map.get(stt, "gray")
+    color = get_color(row["Số BN"])
 
-    tooltip_text = f"""
-    Tên cơ sở: {row['Tên cơ sở']}
-    Số BN: {row['Số BN']}
-    """
+    tooltip_text = f"{row['Tên cơ sở']}<br>Số BN: {int(row['Số BN']) if pd.notna(row['Số BN']) else 'Không có dữ liệu'}"
 
     popup_text = f"""
     <b>{row['Tên cơ sở']}</b><br>
     STT: {row['STT']}<br>
     Địa chỉ: {row['Địa chỉ']}<br>
     Điện thoại: {row['Điện thoại liên hệ']}<br>
-    Số BN: {row['Số BN']}
+    Số BN: {int(row['Số BN']) if pd.notna(row['Số BN']) else 'Không có dữ liệu'}
     """
+
     folium.Marker(
         location=[row["lat"], row["lon"]],
-        tooltip=tooltip_text,
+        tooltip=folium.Tooltip(tooltip_text),
         popup=folium.Popup(popup_text, max_width=300),
         icon=folium.Icon(color=color)
     ).add_to(m)
@@ -64,10 +62,10 @@ for _, row in df.iterrows():
 # Hiển thị bản đồ
 st_folium(m, use_container_width=True, height=800)
 
-# Chú giải màu theo STT
-st.subheader("Chú giải màu theo STT")
+# Chú giải màu
+st.subheader("Chú giải màu theo số bệnh nhân")
 legend_df = pd.DataFrame({
-    "STT": list(stt_color_map.keys()),
-    "Màu": list(stt_color_map.values())
+    "Nhóm số BN": ["< 100", "100 - < 500", "500 - < 1000", ">= 1000"],
+    "Màu": ["green", "blue", "orange", "red"]
 })
 st.dataframe(legend_df, use_container_width=True)
