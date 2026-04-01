@@ -6,66 +6,74 @@ from folium.plugins import Fullscreen
 
 st.set_page_config(layout="wide")
 
-# Đọc file Excel
 file_path = "dieu tri.xlsx"
 df = pd.read_excel(file_path)
 
-# Bỏ các dòng thiếu tọa độ
-df = df.dropna(subset=["lat", "lon"])
-
-# Chuẩn hóa cột Số BN về dạng số
+df.columns = df.columns.str.strip()
+df["lat"] = pd.to_numeric(df["lat"], errors="coerce")
+df["lon"] = pd.to_numeric(df["lon"], errors="coerce")
 df["Số BN"] = pd.to_numeric(df["Số BN"], errors="coerce")
+df = df.dropna(subset=["lat", "lon"])
 
 st.title("Bản đồ cơ sở điều trị")
 
-# Hàm phân màu theo số bệnh nhân
-def get_color(so_bn):
+# Đỏ nhạt -> đỏ đậm theo Số BN
+def get_red_color(so_bn):
     if pd.isna(so_bn):
-        return "gray"
+        return "#bdbdbd"   # xám nếu thiếu dữ liệu
     elif so_bn < 100:
-        return "green"
+        return "#fee5d9"
     elif so_bn < 500:
-        return "blue"
+        return "#fcae91"
     elif so_bn < 1000:
-        return "orange"
+        return "#fb6a4a"
     else:
-        return "red"
+        return "#cb181d"
 
-# Tạo bản đồ
+# Tăng nhẹ kích thước theo Số BN
+def get_radius(so_bn):
+    if pd.isna(so_bn):
+        return 5
+    elif so_bn < 100:
+        return 6
+    elif so_bn < 500:
+        return 8
+    elif so_bn < 1000:
+        return 10
+    else:
+        return 12
+
 m = folium.Map(
     location=[df["lat"].mean(), df["lon"].mean()],
     zoom_start=10
 )
 Fullscreen(position="topright").add_to(m)
 
-# Vẽ các điểm
 for _, row in df.iterrows():
-    color = get_color(row["Số BN"])
+    so_bn = row["Số BN"]
+    color = get_red_color(so_bn)
+    radius = get_radius(so_bn)
 
-    tooltip_text = f"{row['Tên cơ sở']}<br>Số BN: {int(row['Số BN']) if pd.notna(row['Số BN']) else 'Không có dữ liệu'}"
+    tooltip_text = (
+        f"{row['Tên cơ sở']}<br>"
+        f"Số BN: {int(so_bn) if pd.notna(so_bn) else 'Không có dữ liệu'}"
+    )
 
-    popup_text = f"""
-    <b>{row['Tên cơ sở']}</b><br>
-    STT: {row['STT']}<br>
-    Địa chỉ: {row['Địa chỉ']}<br>
-    Điện thoại: {row['Điện thoại liên hệ']}<br>
-    Số BN: {int(row['Số BN']) if pd.notna(row['Số BN']) else 'Không có dữ liệu'}
-    """
-
-    folium.Marker(
+    folium.CircleMarker(
         location=[row["lat"], row["lon"]],
-        tooltip=folium.Tooltip(tooltip_text),
-        popup=folium.Popup(popup_text, max_width=300),
-        icon=folium.Icon(color=color)
+        radius=radius,
+        color=color,
+        fill=True,
+        fill_color=color,
+        fill_opacity=0.85,
+        tooltip=folium.Tooltip(tooltip_text, sticky=True)
     ).add_to(m)
 
-# Hiển thị bản đồ
 st_folium(m, use_container_width=True, height=800)
 
-# Chú giải màu
 st.subheader("Chú giải màu theo số bệnh nhân")
 legend_df = pd.DataFrame({
     "Nhóm số BN": ["< 100", "100 - < 500", "500 - < 1000", ">= 1000"],
-    "Màu": ["green", "blue", "orange", "red"]
+    "Màu": ["đỏ rất nhạt", "đỏ nhạt", "đỏ vừa", "đỏ đậm"]
 })
 st.dataframe(legend_df, use_container_width=True)
