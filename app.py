@@ -41,7 +41,12 @@ Fullscreen(position="topright").add_to(m)
 for _, row in df.iterrows():
     stt = row["STT"]
     color = stt_color_map.get(stt, "gray")
-    tooltip=f"{row['Tên cơ sở']} - {row['Số BN']} BN"
+
+    tooltip_text = f"""
+    Tên cơ sở: {row['Tên cơ sở']}
+    Số BN: {row['Số BN']}
+    """
+
     popup_text = f"""
     <b>{row['Tên cơ sở']}</b><br>
     STT: {row['STT']}<br>
@@ -49,7 +54,6 @@ for _, row in df.iterrows():
     Điện thoại: {row['Điện thoại liên hệ']}<br>
     Số BN: {row['Số BN']}
     """
-
     folium.Marker(
         location=[row["lat"], row["lon"]],
         tooltip=tooltip_text,
