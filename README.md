@@ -1,2 +1,2 @@
-# congchung
-Ứng dụng chuyển sang text do Lập trình viên Dương thị Kim Hiền đề xuất
+# Số bệnh nhân  
+Số BN theo cơ sở điều trị
