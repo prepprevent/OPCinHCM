@@ -7,7 +7,7 @@ from folium.plugins import Fullscreen
 st.set_page_config(layout="wide")
 
 # Đọc file Excel
-file_path = "QA.xlsx"
+file_path = "dieu tri.xlsx"
 df = pd.read_excel(file_path)
 
 # Chuẩn hóa cột Số BN về dạng số
