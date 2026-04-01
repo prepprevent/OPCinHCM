@@ -7,7 +7,7 @@ from folium.plugins import Fullscreen
 st.set_page_config(layout="wide")
 
 # Đọc file Excel
-file_path = "dieu tri.xlsx"
+file_path = "dieu tri moi.xlsx"
 df = pd.read_excel(file_path)
 
 # Chuẩn hóa cột Số BN về dạng số
@@ -20,13 +20,13 @@ def get_color(so_bn):
     if pd.isna(so_bn):
         return "gray"
     elif so_bn < 100:
-        return "#fee5d9"
+        return "#ff4d4d"   # đỏ
     elif so_bn < 500:
-        return "#fcae91"
+        return "#b30000"   # đỏ đậm
     elif so_bn < 1000:
-        return "#fb6a4a"
+        return "#8000ff"   # tím
     else:
-        return "#cb181d"
+        return "#2e0057"   # tím than
 
 # Tạo bản đồ
 m = folium.Map(
@@ -49,11 +49,15 @@ for _, row in df.iterrows():
     Số BN: {int(row['Số BN']) if pd.notna(row['Số BN']) else 'Không có dữ liệu'}
     """
 
-    folium.Marker(
+    folium.CircleMarker(
         location=[row["lat"], row["lon"]],
+        radius=8,
         tooltip=folium.Tooltip(tooltip_text),
         popup=folium.Popup(popup_text, max_width=300),
-        icon=folium.Icon(color=color)
+        color=color,
+        fill=True,
+        fill_color=color,
+        fill_opacity=0.9
     ).add_to(m)
 
 # Hiển thị bản đồ
@@ -63,6 +67,6 @@ st_folium(m, use_container_width=True, height=800)
 st.subheader("Chú giải màu theo số bệnh nhân")
 legend_df = pd.DataFrame({
     "Nhóm số BN": ["< 100", "100 - < 500", "500 - < 1000", ">= 1000"],
-    "Màu": ["green", "blue", "orange", "red"]
+    "Màu": ["đỏ", "đỏ đậm", "tím", "tím than"]
 })
 st.dataframe(legend_df, use_container_width=True)
