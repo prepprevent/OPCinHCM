@@ -41,9 +41,7 @@ Fullscreen(position="topright").add_to(m)
 for _, row in df.iterrows():
     stt = row["STT"]
     color = stt_color_map.get(stt, "gray")
-
-    tooltip=f"{row['Tên cơ sở']}<br>Số BN: {row['Số BN']}"
-
+    tooltip=f"{row['Tên cơ sở']} - {row['Số BN']} BN"
     popup_text = f"""
     <b>{row['Tên cơ sở']}</b><br>
     STT: {row['STT']}<br>
