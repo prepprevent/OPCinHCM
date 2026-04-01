@@ -42,10 +42,7 @@ for _, row in df.iterrows():
     stt = row["STT"]
     color = stt_color_map.get(stt, "gray")
 
-    tooltip_text = f"""
-    Tên cơ sở: {row['Tên cơ sở']}
-    Số BN: {row['Số BN']}
-    """
+    tooltip=f"{row['Tên cơ sở']}<br>Số BN: {row['Số BN']}"
 
     popup_text = f"""
     <b>{row['Tên cơ sở']}</b><br>
